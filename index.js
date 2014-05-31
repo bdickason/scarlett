@@ -1,5 +1,5 @@
-/* index.js - Main file to start up the server */
+/* index.js - Main file to start up the app */
 
-var Gmail = require('gmail');
+var server = require('./server');
 
-console.log(Gmail);
+server.startServer();
