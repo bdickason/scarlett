@@ -6,9 +6,8 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var favicon = require('serve-favicon');
 
-var MailListener = require('mail-listener2');
-var xoauth2 = require('xoauth2');
 var OAuth2 = require('oauth').OAuth2;
+var MailListener = require('mail-listener2');
 
 
 module.exports.startServer = function() {
@@ -69,23 +68,22 @@ module.exports.startServer = function() {
         res.send('success!');
       }
       else {
-        res.send('got access token: ' + access_token);
+        res.redirect('/mail?access_token=' + access_token);
       }
     });
   });
 
-  app.get('/xoauth', function(req, res) {
-
-  });
-
   app.get('/mail', function(req, res) {
+    // Monitors your mailbox for new mail to come in
+    
+    var email = req.query.email;
+    var access_token = req.query.access_token;
 
     // Mail server //
+    var xoauth2 = getXOauth2(email, access_token);
 
     var mailListener = new MailListener({
-      xoauth2: '',
-      username: cfg.MAIL_USERNAME,
-      password: cfg.MAIL_PASSWORD,
+      xoauth2: xoauth2,
       host: cfg.MAIL_HOST,
       port: cfg.MAIL_PORT,
       tls: true,
@@ -122,9 +120,18 @@ module.exports.startServer = function() {
 
   });
 
+  getXOauth2 = function(email, access_token) {
+    // Grabs an XOauth2 token after retrieving the access_token
+    var query_string = 'user=' + email + '\1auth=Bearer ' + access_token + '\1\1';
+
+    var buffer = new Buffer(query_string);
+    var encoded_string = buffer.toString('base64');
+
+    return(encoded_string);
+  };
+
 
   app.listen(cfg.PORT);
 
 };
-
 
