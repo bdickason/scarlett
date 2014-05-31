@@ -1,0 +1,31 @@
+{
+  "name": "scarlett",
+  "version": "0.0.1",
+  "description": "Reads you a summary of your important e-mails",
+  "author": "Brad Dickason <dickason@gmail.com>",
+  "contributors": [
+    {
+      "name": "Brad Dickason",
+      "email": "dickason@gmail.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bdickason/scarlett"
+  },
+  "main": "app",
+  "engines": {
+    "node": ">= 10.0.0"
+  },
+  "scripts": {
+    "start": "make",
+    "test": "make test"
+  },
+  "devDependencies": {
+    "mocha": "^1.20.0",
+    "should": "^4.0.0"
+  },
+  "dependencies": {
+    "gmail": "^0.5.0"
+  }
+}
