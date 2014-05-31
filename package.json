@@ -26,9 +26,9 @@
     "should": "^4.0.0"
   },
   "dependencies": {
-    "gmail": "^0.5.0",
     "express": "^4.4.0",
     "body-parser": "^1.2.2",
-    "serve-favicon": "^2.0.0"
+    "serve-favicon": "^2.0.0",
+    "mail-listener2": "^0.1.3"
   }
 }
