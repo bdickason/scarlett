@@ -11,7 +11,7 @@ var favicon = require('serve-favicon');
 var MailListener = require('mail-listener2');
 
 // My modules
-var Gmail = require('./node-gmail');  // OAuth current user w/ google and connect their gmail
+var Gmail = require('gmail-imap');  // OAuth current user w/ google and connect their gmail
 
 
 
@@ -29,9 +29,8 @@ module.exports.startServer = function() {
   /* API Routes */
   app.get('/', function(req, res) {
 
+    // Get gmail's authentication URL
     var authUrl = gmail.getAuthUrl();
-
-    console.log('redirecting');
     res.redirect(authUrl);
   });
 
@@ -89,6 +88,7 @@ module.exports.startServer = function() {
       // do something with mail object including attachments
       console.log("emailParsed", mail);
       // mail processing code goes here
+      res.json(mail);
     });
 
     mailListener.on("attachment", function(attachment){
