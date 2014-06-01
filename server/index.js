@@ -2,12 +2,17 @@
 
 var cfg = require('./cfg/config.js');
 
+// Express and middleware
 var express = require('express');
 var bodyParser = require('body-parser');
 var favicon = require('serve-favicon');
 
-var OAuth2 = require('oauth').OAuth2;
+// External Dependencies
 var MailListener = require('mail-listener2');
+
+// My modules
+var Gmail = require('./node-gmail');  // OAuth current user w/ google and connect their gmail
+
 
 
 module.exports.startServer = function() {
@@ -19,56 +24,27 @@ module.exports.startServer = function() {
 
 
   /* Basic funk-tionality */
-
+  var gmail = new Gmail(cfg);
  
   /* API Routes */
   app.get('/', function(req, res) {
 
-    var authorizeConfig = {
-      response_type: 'code',
-      redirect_uri: 'http://localhost:3000/callback',
-      scope: 'https://mail.google.com/',
-      access_type: 'offline'
-    };
-
-    var server = 'https://accounts.google.com/o/';
-
-    var oauth2 = new OAuth2(cfg.CLIENT_ID, cfg.CLIENT_SECRET, server, 'oauth2/auth', 'oauth2/token', null);
+    var authUrl = gmail.getAuthUrl();
 
     console.log('redirecting');
-    res.redirect(oauth2.getAuthorizeUrl(authorizeConfig));
+    res.redirect(authUrl);
   });
 
   app.get('/callback', function(req, res) {
     var code = req.query.code;
 
-    var server = 'https://accounts.google.com/o/';
-
-    var oauth2 = new OAuth2(cfg.CLIENT_ID, cfg.CLIENT_SECRET, server, 'oauth2/auth', 'oauth2/token', null);
-
-    accessParams = { 'grant_type': 'authorization_code',
-     'redirect_uri': 'http://localhost:3000/callback'
-    };
-
-    oauth2.getOAuthAccessToken(code, accessParams, function(err, access_token, refresh_token, results) {
-      if(err) {
-        console.log('Error: ');
-        console.log(err);
-      }
-      
-      console.log('Access Token: ');
-      console.log(access_token);
-      console.log('Refresh Token: ');
-      console.log(refresh_token);
-
-      console.log(results);
-      
-      if(refresh_token && access_token) {
-        // Success!!
+    gmail.getAccessToken(code, function(callback) {
+      if(callback.refresh_token && callback.access_token) {
         res.send('success!');
       }
       else {
-        res.redirect('/mail?access_token=' + access_token);
+        console.log(callback.access_token);
+        res.redirect('/mail?access_token=' + callback.access_token + '&email=dickason@gmail.com');
       }
     });
   });
@@ -80,7 +56,7 @@ module.exports.startServer = function() {
     var access_token = req.query.access_token;
 
     // Mail server //
-    var xoauth2 = getXOauth2(email, access_token);
+    var xoauth2 = gmail.getXOauth2(email, access_token);
 
     var mailListener = new MailListener({
       xoauth2: xoauth2,
@@ -119,17 +95,6 @@ module.exports.startServer = function() {
     });
 
   });
-
-  getXOauth2 = function(email, access_token) {
-    // Grabs an XOauth2 token after retrieving the access_token
-    var query_string = 'user=' + email + '\1auth=Bearer ' + access_token + '\1\1';
-
-    var buffer = new Buffer(query_string);
-    var encoded_string = buffer.toString('base64');
-
-    return(encoded_string);
-  };
-
 
   app.listen(cfg.PORT);
 
