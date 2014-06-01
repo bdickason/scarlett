@@ -8,6 +8,11 @@ function Gmail(cfg) {
         clientSecret: cfg.CLIENT_SECRET
     };
 
+    var server = 'https://accounts.google.com/o/';
+
+    // Initialize oauth2
+    this.oauth2 = new OAuth2(this.options.clientId, this.options.clientSecret, server, 'oauth2/auth', 'oauth2/token', null);
+
     return(null);
 }
 
@@ -20,10 +25,7 @@ Gmail.prototype.getAuthUrl = function() {
       access_type: 'offline'
     };
 
-    var server = 'https://accounts.google.com/o/';
-    var oauth2 = new OAuth2(this.options.clientId, this.options.clientSecret, server, 'oauth2/auth', 'oauth2/token', null);
-
-    var authUrl = oauth2.getAuthorizeUrl(authorizeConfig);
+    var authUrl = this.oauth2.getAuthorizeUrl(authorizeConfig);
 
     return(authUrl);
 };
@@ -33,13 +35,11 @@ Gmail.prototype.getAccessToken = function(code, callback) {
 
     var server = 'https://accounts.google.com/o/';
 
-    var oauth2 = new OAuth2(this.options.clientId, this.options.clientSecret, server, 'oauth2/auth', 'oauth2/token', null);
-
     accessParams = { 'grant_type': 'authorization_code',
      'redirect_uri': 'http://localhost:3000/callback'
     };
 
-    oauth2.getOAuthAccessToken(code, accessParams, function(err, access_token, refresh_token, results) {
+    this.oauth2.getOAuthAccessToken(code, accessParams, function(err, access_token, refresh_token, results) {
       if(err) {
         console.log('Error: ');
         console.log(err);
@@ -48,6 +48,23 @@ Gmail.prototype.getAccessToken = function(code, callback) {
       console.log(results);
       callback(results);
     });
+};
+
+Gmail.prototype.getEmail = function(access_token, callback) {
+  /* Step 3: Get user's e-mail address from google (requires access_token from getAccessToken) */
+  console.log('grabbing email address');
+
+  var endpoint = 'https://www.googleapis.com/plus/v1/people/me';
+
+  this.oauth2.get(endpoint, access_token, function(err, data) {
+    if(err) {
+      console.log('Error: ');
+      console.log(err);
+    }
+    // console.log(data);
+    callback(JSON.parse(data));
+  });
+
 };
 
 Gmail.prototype.getXOauth2 = function(email, access_token) {

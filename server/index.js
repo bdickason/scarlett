@@ -43,8 +43,10 @@ module.exports.startServer = function() {
         res.send('success!');
       }
       else {
-        console.log(callback.access_token);
-        res.redirect('/mail?access_token=' + callback.access_token + '&email=dickason@gmail.com');
+        gmail.getEmail(callback.access_token, function(data) {
+          var email = data.emails[0].value;
+          res.redirect('/mail?access_token=' + callback.access_token + '&email=' + email);
+        });
       }
     });
   });
